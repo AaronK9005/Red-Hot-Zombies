@@ -1,0 +1,5 @@
+build/*
+!build/red_hot_zombies.exe
+
+.vscode/*
+!.vscode/red_hot_zombies_snippets.json
