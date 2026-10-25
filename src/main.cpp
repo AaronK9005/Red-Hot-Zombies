@@ -1,8 +1,15 @@
 #include <iostream>
 
+#include "application.hpp"
+
 int main()
 {
-    std::cout << "project Red Hot Zombies" << std::endl;
+    Application app;
+    if (app.init())
+    {
+        app.run();
+    }
+    app.shutdown();
 
     return 0;
 }
