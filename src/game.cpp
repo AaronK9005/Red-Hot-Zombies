@@ -4,6 +4,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "platform/input.hpp"
+
+#include <iostream> // debug
+#include <format>
+
 Game::Game()
 {
 
@@ -16,6 +21,8 @@ Game::~Game()
 
 bool Game::init(const glm::ivec2& size)
 {
+    p_position = glm::vec2(size) * 0.5f;
+
     float vecticies[] = {
          0.5f,  0.5f, // top right
         -0.5f,  0.5f, // top left
@@ -46,15 +53,13 @@ bool Game::init(const glm::ivec2& size)
     glEnableVertexAttribArray(0);
 
     m_projection = glm::ortho(
-        // 0.0f, static_cast<float>(size.x),
-        // static_cast<float>(size.y), 0.0f,
-        // -1.0f, 100.0f
-        static_cast<float>(-size.x / 2), static_cast<float>(size.x / 2),
-        static_cast<float>(-size.y / 2), static_cast<float>(size.y / 2),
-        -1.0f, 1.0f
+        0.0f, static_cast<float>(size.x),
+        0.0f, static_cast<float>(size.y),
+        -1.0f, 100.0f
+        // static_cast<float>(-size.x / 2), static_cast<float>(size.x / 2),
+        // static_cast<float>(-size.y / 2), static_cast<float>(size.y / 2),
+        // -1.0f, 1.0f
     );
-
-    m_model = glm::scale(m_model, glm::vec3(100.f, 100.f, 1.0f));
 
     if (!m_shader.compile(SHADERS_PATH "basic.vert", SHADERS_PATH "basic.frag"))
     {
@@ -63,36 +68,63 @@ bool Game::init(const glm::ivec2& size)
 
     m_shader.use();
     m_shader.setVec3("player_color", p_color);
-    m_shader.setMat4("model", m_model);
+    // m_shader.setMat4("model", m_model);
     m_shader.setMat4("view", glm::mat4(1.0f));
-    m_shader.setMat4("projection", m_projection);
+    // m_shader.setMat4("projection", m_projection);
 
     return true;
 }
 
 bool Game::handleInput()
 {
+    p_move_direction = glm::vec2(0.0f);
+    if (Input::isPressed(Key::W))
+    {
+        p_move_direction.y += 1.0f;
+    }
+    if (Input::isPressed(Key::A))
+    {
+        p_move_direction.x -= 1.0f;
+    }
+    if (Input::isPressed(Key::S))
+    {
+        p_move_direction.y -= 1.0f;
+    }
+    if (Input::isPressed(Key::D))
+    {
+        p_move_direction.x += 1.0f;
+    }
+
     return true;
 }
 
 bool Game::update(float dt)
 {
+    p_position += p_move_direction * dt * 100.f;
+
+    std::cout << std::format("player position = ({}, {})\n", p_position.x, p_position.y);
+
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(p_position, 0.0f));
+    model = glm::rotate(model, glm::radians(p_rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+    m_model = model;
+
     return true;
 }
 
 bool Game::render(const glm::ivec2& size)
 {
     m_projection = glm::ortho(
-        // 0.0f, static_cast<float>(size.x),
-        // 0.0f,
-        // static_cast<float>(size.y),  0.0f,
-        // -1.0f, 100.0f
-        static_cast<float>(-size.x / 2), static_cast<float>(size.x / 2),
-        static_cast<float>(-size.y / 2), static_cast<float>(size.y / 2),
+        0.0f, static_cast<float>(size.x),
+        0.0f, static_cast<float>(size.y),
         -1.0f, 1.0f
     );
 
+    m_shader.use();
     m_shader.setMat4("projection", m_projection);
+    m_shader.setMat4("model", m_model);
+
+    glBindVertexArray(vao);
     
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 

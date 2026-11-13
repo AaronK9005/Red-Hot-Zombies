@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "platform/input_extended.hpp"
+
 Window::Window() {}
 
 Window::~Window()
@@ -98,6 +100,20 @@ void Window::processInput()
         glfwSetWindowShouldClose(m_window, true);
     }
 }
+
+void Window::updateInput() const // updates global Input class
+{
+    for (int i = static_cast<int>(Key::FIRST); i <= static_cast<int>(Key::LAST); i++)
+    {
+        Input::update(static_cast<Key>(i), glfwGetKey(m_window, Input::keyboardMap[i]) == GLFW_PRESS);
+    }
+
+    for (int i = static_cast<int>(Mouse::BUTTON_FIRST); i <= static_cast<int>(Mouse::BUTTON_LAST); i++)
+    {
+        Input::update(static_cast<Mouse>(i), glfwGetKey(m_window, Input::mouseMap[i]) == GLFW_PRESS);
+    }
+}
+
 void Window::pollEvents()
 {
     glfwPollEvents();

@@ -56,6 +56,7 @@ void Application::run()
 
         window.swapBuffers();
         window.pollEvents();
+        window.updateInput();
     }
 }
 

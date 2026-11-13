@@ -15,7 +15,8 @@ struct Game
     GameState m_state = GameState::Playing;
 
     float p_rotation = 0.0f;
-    glm::vec2 p_position{0.0f, 0.0f};
+    glm::vec2 p_position{0.0f};
+    glm::vec2 p_move_direction{0.0f};
     glm::vec3 p_color{0.7f, 0.3f, 0.7};
 
     glm::mat4 m_projection{1.0f};

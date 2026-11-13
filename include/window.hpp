@@ -29,6 +29,7 @@ public:
     bool init();
     bool shouldClose() const;
     void processInput();
+    void updateInput() const; // updates global Input class
     void pollEvents();
     void swapBuffers();
 

@@ -7,6 +7,7 @@ class Application
 {
     Window window{};
     Game game{};
+    bool keys[GLFW_KEY_LAST + 1]{};
 
 public:
     Application();
