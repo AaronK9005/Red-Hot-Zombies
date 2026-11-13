@@ -6,7 +6,11 @@
 #include <fstream>
 #include <sstream>
 
-Shader::Shader(const char* vertPath, const char* fragPath)
+Shader::Shader()
+{
+}
+
+bool Shader::compile(const char* vertPath, const char* fragPath)
 {
     std::string vertCode;
     std::string fragCode;
@@ -33,9 +37,10 @@ Shader::Shader(const char* vertPath, const char* fragPath)
         vertCode = vShaderStream.str();
         fragCode = fShaderStream.str();
     }
-    catch(std::ifstream::failure e)
+    catch(const std::ifstream::failure& e)
     {
         std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ\n" << e.what() << std::endl;
+        return false;
     }
 
     const char* vShaderCode = vertCode.c_str();
@@ -54,6 +59,8 @@ Shader::Shader(const char* vertPath, const char* fragPath)
     {
         glGetShaderInfoLog(vertex, 512, nullptr, infoLog);
         std::cerr << "ERROR::SHADER::VERTEX::COMPILATION::FAILED\n" << infoLog << std::endl;
+        glDeleteShader(vertex);
+        return false;
     }
 
     // frag compile
@@ -65,6 +72,9 @@ Shader::Shader(const char* vertPath, const char* fragPath)
     {
         glGetShaderInfoLog(fragment, 512, nullptr, infoLog);
         std::cerr << "ERROR::SHADER::FRAGMENT::COMPILATION::FAILED\n" << infoLog << std::endl;
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+        return false;
     }
 
     id = glCreateProgram();
@@ -76,10 +86,17 @@ Shader::Shader(const char* vertPath, const char* fragPath)
     {
         glGetProgramInfoLog(id, 512, nullptr, infoLog);
         std::cerr << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+        glDeleteProgram(id);
+        id = 0;
+        return false;
     }
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+
+    return true;
 }
 
 void Shader::use()

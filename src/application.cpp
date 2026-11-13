@@ -18,6 +18,11 @@ bool Application::init()
         return false;
     }
 
+    if (!game.init(window.getWinSize()))
+    {
+        return false;
+    }
+
     return true;
 }
 
@@ -40,6 +45,14 @@ void Application::run()
         float dt = timer.getDeltaTime();
 
         glClear(GL_COLOR_BUFFER_BIT);
+
+        game.handleInput();
+
+        game.update(dt);
+
+        game.render(window.getWinSize());
+
+        
 
         window.swapBuffers();
         window.pollEvents();

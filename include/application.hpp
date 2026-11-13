@@ -1,10 +1,12 @@
 #pragma once
 
 #include "window.hpp"
+#include "game.hpp"
 
 class Application
 {
     Window window{};
+    Game game{};
 
 public:
     Application();

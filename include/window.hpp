@@ -15,6 +15,8 @@ private:
     glm::ivec2 m_winSize = { s_startWidth, s_startHeight };
 
 private:
+    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+
     void destroy();
 
 public:

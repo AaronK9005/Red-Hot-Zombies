@@ -10,7 +10,7 @@ Window::~Window()
     destroy();
 }
 
-void framebufferSizeCallback(GLFWwindow* window, int width, int height)
+void Window::framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
@@ -67,7 +67,7 @@ bool Window::init()
         return false;
     }
 
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClearColor(0.4f, 0.4f, 0.2f, 1.0f);
 
     return true;
 }

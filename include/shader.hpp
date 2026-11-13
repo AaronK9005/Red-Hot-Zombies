@@ -9,11 +9,10 @@
 
 struct Shader
 {
-    unsigned id;
-
-    Shader(const char* vertPath, const char* fragPath);
+    Shader();
 
     void use();
+    bool compile(const char* vertPath, const char* fragPath);
 
     // for setting uniform variables in the shader
     void setBool(const std::string& name, bool value) const;
@@ -27,4 +26,7 @@ struct Shader
     void setVec3(const std::string& name, const glm::vec3& vec) const;
 
     void setMat4(const std::string& name, const glm::mat4& mat) const;
+
+private:
+    unsigned id = 0;
 };
