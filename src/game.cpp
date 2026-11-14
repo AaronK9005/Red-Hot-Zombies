@@ -6,9 +6,6 @@
 
 #include "platform/input.hpp"
 
-#include <iostream> // debug
-#include <format>
-
 Game::Game()
 {
 
@@ -94,6 +91,18 @@ bool Game::handleInput()
     {
         p_move_direction.x += 1.0f;
     }
+    if (glm::length(p_move_direction) > 0.f)
+        p_move_direction = glm::normalize(p_move_direction);
+
+    p_rotate = 0.0f;
+    if (Input::isPressed(Key::E))
+    {
+        p_rotate += 1.0f;
+    }
+    if (Input::isPressed(Key::SPACE))
+    {
+        p_rotate -= 1.0f;
+    }
 
     return true;
 }
@@ -101,12 +110,12 @@ bool Game::handleInput()
 bool Game::update(float dt)
 {
     p_position += p_move_direction * dt * 100.f;
-
-    std::cout << std::format("player position = ({}, {})\n", p_position.x, p_position.y);
+    p_rotation = glm::mod(p_rotation + p_rotate * dt * 90.f + 360.f, 360.f);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(p_position, 0.0f));
     model = glm::rotate(model, glm::radians(p_rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(p_size, 0.0f));
     m_model = model;
 
     return true;
