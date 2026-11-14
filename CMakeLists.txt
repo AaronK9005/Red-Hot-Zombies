@@ -19,6 +19,13 @@ target_include_directories(glad PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/g
 
 add_executable("${CMAKE_PROJECT_NAME}")
 
+# unused rn i think
+target_precompile_headers(
+    red_hot_zombies
+    PRIVATE
+    include/pch.hpp
+)
+
 # This is useful to get an ASSETS_PATH in your IDE during development
 # but you should comment this if you compile a release version and uncomment the next line
 target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC RESOURCES_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resources/")
