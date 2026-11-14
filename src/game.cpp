@@ -97,11 +97,11 @@ bool Game::handleInput()
     p_rotate = 0.0f;
     if (Input::isPressed(Key::E))
     {
-        p_rotate += 1.0f;
+        p_rotate -= 1.0f;
     }
     if (Input::isPressed(Key::SPACE))
     {
-        p_rotate -= 1.0f;
+        p_rotate += 1.0f;
     }
 
     return true;
