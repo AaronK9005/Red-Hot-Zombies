@@ -110,7 +110,7 @@ void Window::updateInput() const // updates global Input class
 
     for (int i = static_cast<int>(Mouse::BUTTON_FIRST); i <= static_cast<int>(Mouse::BUTTON_LAST); i++)
     {
-        Input::update(static_cast<Mouse>(i), glfwGetKey(m_window, Input::mouseMap[i]) == GLFW_PRESS);
+        Input::update(static_cast<Mouse>(i), glfwGetMouseButton(m_window, Input::mouseMap[i]) == GLFW_PRESS);
     }
 }
 

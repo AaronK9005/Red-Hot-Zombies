@@ -11,5 +11,5 @@ enum class Mouse {
     MIDDLE = button3,
 
     BUTTON_FIRST = button1,
-    BUTTON_LAST = button2,
+    BUTTON_LAST = button8,
 };
