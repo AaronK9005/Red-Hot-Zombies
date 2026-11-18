@@ -18,6 +18,18 @@ bool Application::init()
         return false;
     }
 
+    if (!m_shader.compile(SHADERS_PATH "basic.vert", SHADERS_PATH "basic.frag"))
+    {
+        return false;
+    }
+
+    if (!renderer.init(window))
+    {
+        return false;
+    }
+    renderer.setShader(m_shader);
+    renderer.setCamera(camera);
+
     if (!game.init(window.getWinSize()))
     {
         return false;
@@ -50,9 +62,7 @@ void Application::run()
 
         game.update(dt);
 
-        game.render(window.getWinSize());
-
-        
+        renderer.render(game);        
 
         window.swapBuffers();
         window.pollEvents();

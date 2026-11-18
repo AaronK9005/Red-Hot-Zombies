@@ -28,7 +28,7 @@ public:
 
     bool init();
     bool shouldClose() const;
-    void processInput();
+    void processInput(); // temporary handles specific keys, before I implement scenes
     void updateInput() const; // updates global Input class
     void pollEvents();
     void swapBuffers();

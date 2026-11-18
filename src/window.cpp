@@ -101,7 +101,7 @@ void Window::processInput()
     }
 }
 
-void Window::updateInput() const // updates global Input class
+void Window::updateInput() const
 {
     for (int i = static_cast<int>(Key::FIRST); i <= static_cast<int>(Key::LAST); i++)
     {
