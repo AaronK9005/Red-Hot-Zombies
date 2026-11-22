@@ -1,9 +1,8 @@
 #include "window.hpp"
 
 #include <iostream>
-#include <fstream>
 
-#include "platform/input_extended.hpp"
+#include "platform/input_update.hpp"
 
 Window::Window() {}
 
@@ -19,8 +18,6 @@ void Window::framebufferSizeCallback(GLFWwindow* window, int width, int height)
 
 bool Window::init()
 {
-    // std::fstream errorFile(LOGS_PATH "errorLog.txt");
-
     if (!glfwInit())
     {
         std::cerr << "glfwInit() failed" << std::endl;
@@ -63,6 +60,8 @@ bool Window::init()
 	glfwSetScrollCallback(m_window, nullptr);  // scrollCallback
     glfwSetFramebufferSizeCallback(m_window, framebufferSizeCallback); //?
 
+    Input::init(m_window);
+
     if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress))
     {
         std::cerr << "gladLoadGL() failed" << std::endl;
@@ -98,19 +97,6 @@ void Window::processInput()
     )
     {
         glfwSetWindowShouldClose(m_window, true);
-    }
-}
-
-void Window::updateInput() const
-{
-    for (int i = static_cast<int>(Key::FIRST); i <= static_cast<int>(Key::LAST); i++)
-    {
-        Input::update(static_cast<Key>(i), glfwGetKey(m_window, Input::keyboardMap[i]) == GLFW_PRESS);
-    }
-
-    for (int i = static_cast<int>(Mouse::BUTTON_FIRST); i <= static_cast<int>(Mouse::BUTTON_LAST); i++)
-    {
-        Input::update(static_cast<Mouse>(i), glfwGetMouseButton(m_window, Input::mouseMap[i]) == GLFW_PRESS);
     }
 }
 

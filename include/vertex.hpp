@@ -9,7 +9,7 @@ struct Vertex
     Vertex(float x, float y) : position(x, y) {}
     Vertex(const glm::vec2 vec) : position(vec) {}
 
-    static void setVertexAttribPtr() const
+    static void setVertexAttribPtr()
     {
         // position
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), nullptr);

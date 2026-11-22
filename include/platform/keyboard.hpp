@@ -5,8 +5,8 @@ enum class Key {
 
     /* printable keys */
     SPACE, APOSTROPHE, COMMA, MINUS, PERIOD, SLASH,
-    num0, num1, num2, num3, num4,
-    num5, num6, num7, num8, num9,
+    KEY_0, KEY_1, KEY_2, KEY_3, KEY_4,
+    KEY_5, KEY_6, KEY_7, KEY_8, KEY_9,
     SEMICOLON, EQUAL,
     A, B, C, D, E, F, G, H, I, J, K, L, M,
     N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
@@ -25,10 +25,23 @@ enum class Key {
     F1, F2, F3, F4, F5, F6, F7, F8, F9,
     F10, F11, F12, F13, F14, F15, F16, F17, F18, F19, F20,
     F21, F22, F23, F24, F25,
+
+    // KP = KEY_PAD = NUMPAD
     KP_0, KP_1, KP_2, KP_3, KP_4,
     KP_5, KP_6, KP_7, KP_8, KP_9,
     KP_DECIMAL, KP_DIVIDE, KP_MULTIPLY,
     KP_SUBTRACT, KP_ADD, KP_ENTER, KP_EQUAL,
+
+    // NUMPAD = KEY_PAD = KP
+    NUMPAD_0 = KP_0, NUMPAD_1 = KP_1,
+    NUMPAD_2 = KP_2, NUMPAD_3 = KP_3,
+    NUMPAD_4 = KP_4, NUMPAD_5 = KP_5,
+    NUMPAD_6 = KP_6, NUMPAD_7 = KP_7,
+    NUMPAD_8 = KP_8, NUMPAD_9 = KP_9,
+    NUMPAD_DECIMAL, NUMPAD_DIVIDE,
+    NUMPAD_MULTIPLY, NUMPAD_SUBTRACT,
+    NUMPAD_ADD, NUMPAD_ENTER, NUMPAD_EQUAL,
+
     LEFT_SHIFT, LEFT_CONTROL, LEFT_ALT, LEFT_SUPER,
     RIGHT_SHIFT, RIGHT_CONTROL, RIGHT_ALT, RIGHT_SUPER,
     MENU,
