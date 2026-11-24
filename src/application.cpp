@@ -39,12 +39,6 @@ bool Application::init()
         return false;
     }
 
-    if (!test_texture.loadFromFile(RESOURCES_PATH "assets/color_splash_bg.jpg"))
-    {
-        std::cout << "test texture loading failed\n";
-        return false;
-    }
-
     return true;
 }
 

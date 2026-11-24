@@ -7,6 +7,7 @@
 #include <cmath>
 #include <iostream>
 #include <algorithm>
+#include <magic_enum.hpp>
 
 void Renderer::render(const Game& game)
 {
@@ -18,6 +19,8 @@ void Renderer::render(const Game& game)
     updateProjectionMatrix();
     updateViewMatrixWithFallback();
 
+    p_shader->setBool("useColor", false);
+
     {
         glm::vec3 playerColor = gData.player.m_color;
         if (game.m_paused) playerColor -= 0.2;
@@ -26,6 +29,7 @@ void Renderer::render(const Game& game)
 
     renderRect(gData.player.m_position, glm::vec2(gData.player.m_size), gData.player.m_rotation);
 
+    p_shader->setBool("useColor", true);
     p_shader->setVec3("color", glm::vec3(0.1f));
     for (const Bullet& bullet : gData.bullets)
     {
@@ -50,6 +54,8 @@ bool Renderer::init(const Window& window)
         -halfDims.y, halfDims.y,
         -1.0f, 1.0f
     );
+
+    initTextures();
 
     return true;
 }
@@ -188,4 +194,32 @@ void Renderer::updateViewMatrixWithFallback() const
     else {
         p_shader->setMat4("view", p_camera->getViewMatrix());
     }
+}
+
+bool Renderer::initTextures()
+{
+    if (!loadTexture(Tex::Background, RESOURCES_PATH "assets/color_splash_bg.jpg")) return false;
+
+    return true;
+}
+
+bool Renderer::loadTexture(Tex texture, std::string_view filepath)
+{
+    if (
+        !m_textures[static_cast<int>(texture)]
+        .loadFromFile(filepath)
+    ){
+        std::cout << std::format(
+            "Failed to load '{}' texture. Path: {}\n",
+            magic_enum::enum_name(texture), filepath
+        );
+        return false;
+    }
+
+    return true;
+}
+
+const Texture& Renderer::getTexture(Tex texture) const
+{
+    return m_textures[static_cast<int>(texture)];
 }

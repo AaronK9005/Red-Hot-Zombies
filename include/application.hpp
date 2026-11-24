@@ -7,9 +7,6 @@
 #include "camera.hpp"
 #include "shader.hpp"
 
-// for testing only
-#include "texture.hpp"
-
 class Application
 {
     Window window{};
@@ -19,9 +16,6 @@ class Application
     Game game{};
 
     std::chrono::high_resolution_clock::time_point lastTime{};
-
-    // for testing only
-    Texture test_texture{};
 
 public:
     Application();
