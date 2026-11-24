@@ -29,11 +29,15 @@ public:
     glm::mat4 getProjectionMatrix() const { return m_projection; }
 
 private:
+    bool useShader() const;
+    void updateProjectionMatrix() const;
+    void updateViewMatrixWithFallback() const;
+
     void renderRect(const glm::vec2& position, const glm::vec2& size) const;
     void renderRect(const glm::vec2& position, const glm::vec2& size, float rotation) const;
     void renderCircle(const glm::vec2& center, float radius) const;
 
-    void renderBackground(const Texture& texture) const;
+    void renderBackground(const Game& game) const;
 
     void initRectMeshData();
     void initCircleMeshData();

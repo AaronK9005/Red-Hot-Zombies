@@ -79,9 +79,7 @@ void Application::run()
 
         game.update(playerInput, dt);
 
-        m_camera.m_position = game.player.m_position;
-
-        glClear(GL_COLOR_BUFFER_BIT);
+        m_camera.m_position = game.m_data.player.m_position;
 
         renderer.render(game);        
 

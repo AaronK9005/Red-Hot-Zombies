@@ -11,6 +11,8 @@ struct Player
     float m_size = 50.0f;
     float m_speed = 100.0f;
 
+    glm::vec3 m_color{0.7f, 0.3f, 0.3f};
+
     void move(glm::vec2 const& direction);
 
     // sets rotation to face towards the given point (int world pos) and returns nomalized direction vector

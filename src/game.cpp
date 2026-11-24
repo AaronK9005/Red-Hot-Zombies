@@ -19,7 +19,7 @@ Game::~Game()
 
 bool Game::init(const glm::ivec2& size)
 {
-    player.m_position = glm::vec2(size) * 0.5f;
+    m_data.player.m_position = glm::vec2(size) * 0.5f;
 
     return true;
 }
@@ -33,6 +33,10 @@ PlayerInput Game::handleInput()
     
     if (Input::justPressed(Mouse::LEFT)) input.fire = true;
 
+    if (Input::isPressed(Key::SPACE)) input.sprint = true;
+
+    if (Input::justPressed(Key::P)) input.togglePause = true;
+
     input.sanitize();
 
     return input;
@@ -40,13 +44,28 @@ PlayerInput Game::handleInput()
 
 void Game::update(const PlayerInput& input, float dt)
 {
-    player.move(input.moveDirection * dt);
+    if (input.togglePause) m_paused = !m_paused;
+    if (m_paused)
+    {
+        return;
+    }
 
-    glm::vec2 faceDir = player.lookAt(Input::getMousePos_world());
+    {
+        glm::vec2 moveVec = input.moveDirection * dt;
+        if (input.sprint) moveVec *= 2;
+
+        m_data.player.move(moveVec);
+    }
+
+    glm::vec2 faceDir = m_data.player.lookAt(Input::getMousePos_world());
 
     if (input.fire)
     {
-        bullets.emplace_back(player.m_position + faceDir * player.m_size / (float)glm::sqrt(2), faceDir, 1.0f);
+        m_data.bullets.emplace_back(
+            m_data.player.m_position + faceDir * m_data.player.m_size / (float)glm::sqrt(2),
+            faceDir,
+            1.0f // lifetime in seconds
+        );
     }
 
     updateBullets(dt);
@@ -61,10 +80,10 @@ void Game::update(const PlayerInput& input, float dt)
 
 void Game::updateBullets(float dt)
 {
-    for (Bullet& bullet : bullets)
+    for (Bullet& bullet : m_data.bullets)
         bullet.update(dt);
 
-    std::erase_if(bullets, [](const Bullet& bullet){
+    std::erase_if(m_data.bullets, [](const Bullet& bullet){
         return !bullet.isAlive();
     }); 
 }

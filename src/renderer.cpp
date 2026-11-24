@@ -6,34 +6,28 @@
 
 #include <cmath>
 #include <iostream>
+#include <algorithm>
 
 void Renderer::render(const Game& game)
 {
-    if (!p_shader)
+    const auto& gData = game.m_data; // game data
+
+    renderBackground(game);
+    
+    if (useShader()) return;
+    updateProjectionMatrix();
+    updateViewMatrixWithFallback();
+
     {
-        std::cout << "Renderer::render::ERROR: no shader given\n";
-        return;
-    }
-    p_shader->use();
-
-    p_shader->setMat4("projection", m_projection);
-
-    if (!p_camera)
-    {
-        std::cout << "Renderer::render::WARNING: no camera given\n";
-        Camera2D fallback_cam;
-
-        p_shader->setMat4("view", fallback_cam.getViewMatrix());
-    }
-    else {
-        p_shader->setMat4("view", p_camera->getViewMatrix());
+        glm::vec3 playerColor = gData.player.m_color;
+        if (game.m_paused) playerColor -= 0.2;
+        p_shader->setVec3("color", playerColor);
     }
 
-    p_shader->setVec3("color", game.p_color);
-    renderRect(game.player.m_position, glm::vec2(game.player.m_size), game.player.m_rotation);
+    renderRect(gData.player.m_position, glm::vec2(gData.player.m_size), gData.player.m_rotation);
 
     p_shader->setVec3("color", glm::vec3(0.1f));
-    for (const Bullet& bullet : game.bullets)
+    for (const Bullet& bullet : gData.bullets)
     {
         renderCircle(bullet.m_position, Bullet::radius);
     }
@@ -96,10 +90,10 @@ void Renderer::initRectMeshData()
 {
     m_meshDatas[(int)Shape::Rect] = MeshData{
         .m_vertices = {
-            {  0.5f,  0.5f },
-            { -0.5f,  0.5f },
-            { -0.5f, -0.5f },
-            {  0.5f, -0.5f }
+            { { 0.5f,  0.5f}, {1.0f, 1.0f} },
+            { {-0.5f,  0.5f}, {0.0f, 1.0f} },
+            { {-0.5f, -0.5f}, {0.0f, 0.0f} },
+            { { 0.5f, -0.5f}, {1.0f, 0.0f} }
         },
         .m_indices = {
             0, 1, 2,
@@ -116,13 +110,18 @@ void Renderer::initCircleMeshData()
     inds.reserve(Circle::segments * 3);
 
     const float increment = glm::radians(360.0f / Circle::segments);
-    verts.emplace_back(0.0f, 0.0f); // center
+    verts.emplace_back(glm::vec2{0.0f, 0.0f}, glm::vec2{0.5f, 0.5f}); // center
     
     for (std::size_t i = 0; i < Circle::segments; i++)
     {
         float angle = increment * static_cast<float>(i);
 
-        verts.emplace_back(cosf(angle), sinf(angle));
+        float x = cosf(angle) * 0.5f;
+        float y = sinf(angle) * 0.5f;
+        float u = x + 0.5f;
+        float v = y + 0.5f;
+
+        verts.emplace_back(glm::vec2{x, y}, glm::vec2{u, v});
 
         inds.push_back(0);
         inds.push_back(i + 1);
@@ -133,4 +132,58 @@ void Renderer::initCircleMeshData()
         .m_vertices = std::move(verts),
         .m_indices = std::move(inds)
     };
+}
+
+void Renderer::renderBackground(const Game& game) const
+{
+    GLfloat clearColor[4];
+    glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
+    if (game.m_paused)
+    {
+        constexpr float darkFactor = 0.1f;
+
+        glClearColor(
+            std::max(0.0f, clearColor[0] - darkFactor),
+            std::max(0.0f, clearColor[1] - darkFactor),
+            std::max(0.0f, clearColor[2] - darkFactor),
+            clearColor[3]
+        );
+    }
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    if (game.m_paused)
+        glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+}
+
+bool Renderer::useShader() const
+{
+    if (!p_shader)
+    {
+        std::cout << "Renderer::render::ERROR: no shader given\n";
+        return false;
+    }
+
+    p_shader->use();
+
+    return true;
+}
+
+void Renderer::updateProjectionMatrix() const
+{
+    p_shader->setMat4("projection", m_projection);
+}
+
+void Renderer::updateViewMatrixWithFallback() const
+{
+    if (!p_camera)
+    {
+        std::cout << "Renderer::render::WARNING: no camera given. Using fallback (default)\n";
+        Camera2D fallback_cam;
+
+        p_shader->setMat4("view", fallback_cam.getViewMatrix());
+    }
+    else {
+        p_shader->setMat4("view", p_camera->getViewMatrix());
+    }
 }

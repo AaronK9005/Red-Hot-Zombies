@@ -10,4 +10,5 @@ bool PlayerInput::shouldMove() const
 void PlayerInput::sanitize()
 {
     if (glm::length(moveDirection) > 0.0f) moveDirection = glm::normalize(moveDirection);
+    else sprint = false;
 }
