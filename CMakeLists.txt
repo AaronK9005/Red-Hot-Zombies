@@ -35,6 +35,8 @@ target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC LOGS_PATH="${CMAKE_CUR
 
 target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC SHADERS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders/")
 
+target_compile_definitions("${CMAKE_PROJECT_NAME}" PUBLIC DEBUG=1)
+
 target_sources("${CMAKE_PROJECT_NAME}" PRIVATE ${SRC_FILES})
 
 target_include_directories("${CMAKE_PROJECT_NAME}" PRIVATE 

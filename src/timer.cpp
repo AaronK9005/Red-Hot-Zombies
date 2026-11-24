@@ -1,14 +1,33 @@
 #include "timer.hpp"
 
-Timer::Timer() : lastTime(Clock::now()) {}
-
-float Timer::getDeltaTime()
+void Timer::start(std::chrono::milliseconds duration)
 {
-    auto currentTime = Clock::now();
+    m_expirationTime = Clock::now() + duration;
+}
 
-    float dt = std::chrono::duration<float>(currentTime - lastTime).count();
+bool Timer::isExpired() const
+{
+    return Clock::now() >= m_expirationTime;
+}
 
-    lastTime = currentTime;
+RepeatingTimer::RepeatingTimer(Clock::duration duration) : m_duration(duration) {}
 
-    return dt;
+bool RepeatingTimer::update()
+{
+    // if (m_duration <= Clock::duration::zero()) return false;
+
+    auto now = Clock::now();
+
+    if (now < m_nextTrigger) return false;
+
+    do {
+        m_nextTrigger += m_duration;
+    } while (m_nextTrigger < now);
+
+    return true;   
+}
+
+void RepeatingTimer::reset()
+{
+    m_nextTrigger = Clock::now() + m_duration;
 }

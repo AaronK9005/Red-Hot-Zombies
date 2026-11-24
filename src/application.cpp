@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "timer.hpp"
+#include "platform/input_update.hpp"
 
 Application::Application()
 {
@@ -28,10 +29,19 @@ bool Application::init()
         return false;
     }
     renderer.setShader(m_shader);
-    renderer.setCamera(camera);
+    renderer.setCamera(m_camera);
+
+    Input::init(window.getGLFWwindow());
+    Input::setViewAndProjectionMatrices(m_camera.getViewMatrix(), renderer.getProjectionMatrix());
 
     if (!game.init(window.getWinSize()))
     {
+        return false;
+    }
+
+    if (!test_texture.loadFromFile(RESOURCES_PATH "assets/color_splash_bg.jpg"))
+    {
+        std::cout << "test texture loading failed\n";
         return false;
     }
 
@@ -46,7 +56,11 @@ void Application::run()
 
     while (running)
     {
+        Input::beginFrame();
+
         window.processInput();
+
+        window.pollEvents();
 
         if (window.shouldClose())
         {
@@ -54,19 +68,24 @@ void Application::run()
             break;
         }
 
-        float dt = timer.getDeltaTime();
+        float dt = getDeltaTime();
+
+        Input::setViewAndProjectionMatrices(
+            m_camera.getViewMatrix(),
+            renderer.getProjectionMatrix()
+        );
+
+        PlayerInput playerInput = game.handleInput();
+
+        game.update(playerInput, dt);
+
+        m_camera.m_position = game.player.m_position;
 
         glClear(GL_COLOR_BUFFER_BIT);
-
-        game.handleInput();
-
-        game.update(dt);
 
         renderer.render(game);        
 
         window.swapBuffers();
-        window.pollEvents();
-        window.updateInput();
     }
 }
 
@@ -75,3 +94,13 @@ void Application::shutdown()
 
 }
 
+float Application::getDeltaTime()
+{
+    auto currentTime = std::chrono::high_resolution_clock::now();
+
+    float dt = std::chrono::duration<float>(currentTime - lastTime).count();
+
+    lastTime = currentTime;
+
+    return dt;
+}

@@ -1,8 +1,7 @@
 #include "window.hpp"
 
-#include <iostream>
-
-#include "platform/input_update.hpp"
+#include "pch.hpp"
+#include <gl/GL.h>
 
 Window::Window() {}
 
@@ -11,10 +10,19 @@ Window::~Window()
     destroy();
 }
 
-void Window::framebufferSizeCallback(GLFWwindow* window, int width, int height)
+#pragma region |> window callbacks <|
+void Window::Callbacks::framebufferSize(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
+
+void Window::Callbacks::windowSize(GLFWwindow* window, int width, int height)
+{
+    auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
+
+    self->m_winSize = {width, height};
+}
+#pragma endregion
 
 bool Window::init()
 {
@@ -27,6 +35,10 @@ bool Window::init()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+
+    // #if DEBUG
+    // glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    // #endif
 
     #if __APPLE__
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -50,17 +62,22 @@ bool Window::init()
     // glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), )
 
     glfwMakeContextCurrent(m_window);
+    glfwSetWindowUserPointer(m_window, this);
 
-	glfwSetKeyCallback(m_window, nullptr);  // keyCallback
-	glfwSetMouseButtonCallback(m_window, nullptr);  // mouseCallback
+    // #if DEBUG
+    // int flags;
+    // glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    // if (!(flags & GL_CONTEXT_FLAG_DEBUG_BIT))
+    // {
+    //     std::cout << "Window::init(): Failed to init debug context\n";
+    //     return false;
+    // }
+    // #endif
+
 	glfwSetWindowFocusCallback(m_window, nullptr);  // WindowFocusCallback
-	glfwSetWindowSizeCallback(m_window, nullptr);  // WindowSizeCallback
-	glfwSetCursorPosCallback(m_window, nullptr);  // cursorPositionCallback
+	glfwSetWindowSizeCallback(m_window, Callbacks::windowSize);
 	glfwSetCharCallback(m_window, nullptr);  // characterCallback
-	glfwSetScrollCallback(m_window, nullptr);  // scrollCallback
-    glfwSetFramebufferSizeCallback(m_window, framebufferSizeCallback); //?
-
-    Input::init(m_window);
+    glfwSetFramebufferSizeCallback(m_window, Callbacks::framebufferSize);
 
     if (!gladLoadGL((GLADloadfunc)glfwGetProcAddress))
     {

@@ -2,12 +2,25 @@
 
 #include <chrono>
 
-using Clock = std::chrono::high_resolution_clock;
+using Clock = std::chrono::steady_clock;
+using std::chrono::seconds;
+using std::chrono::milliseconds;
 
 struct Timer
 {
-    std::chrono::high_resolution_clock::time_point lastTime{};
+    Clock::time_point m_expirationTime;
 
-    Timer();
-    float getDeltaTime();
+    void start(std::chrono::milliseconds duration);
+    bool isExpired() const;
+};
+
+struct RepeatingTimer
+{
+    Clock::duration m_duration = seconds(1);
+    Clock::time_point m_nextTrigger;
+
+    RepeatingTimer(Clock::duration duration);
+
+    bool update();
+    void reset();
 };

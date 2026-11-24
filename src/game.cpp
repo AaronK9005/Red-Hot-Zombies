@@ -5,6 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "platform/input.hpp"
+#include "timer.hpp"
 
 Game::Game()
 {
@@ -23,45 +24,47 @@ bool Game::init(const glm::ivec2& size)
     return true;
 }
 
-bool Game::handleInput()
+PlayerInput Game::handleInput()
 {
-    p_move_direction = glm::vec2(0.0f);
-    if (Input::isPressed(Key::W))
-    {
-        p_move_direction.y += 1.0f;
-    }
-    if (Input::isPressed(Key::A))
-    {
-        p_move_direction.x -= 1.0f;
-    }
-    if (Input::isPressed(Key::S))
-    {
-        p_move_direction.y -= 1.0f;
-    }
-    if (Input::isPressed(Key::D))
-    {
-        p_move_direction.x += 1.0f;
-    }
-    if (glm::length(p_move_direction) > 0.f)
-        p_move_direction = glm::normalize(p_move_direction);
+    PlayerInput input = {};
 
-    p_rotate = 0.0f;
-    if (Input::isPressed(Key::E))
-    {
-        p_rotate -= 1.0f;
-    }
-    if (Input::isPressed(Key::SPACE))
-    {
-        p_rotate += 1.0f;
-    }
+    input.moveDirection.x = Input::isPressed(Key::D) - Input::isPressed(Key::A);
+    input.moveDirection.y = Input::isPressed(Key::W) - Input::isPressed(Key::S);
+    
+    if (Input::justPressed(Mouse::LEFT)) input.fire = true;
 
-    return true;
+    input.sanitize();
+
+    return input;
 }
 
-bool Game::update(float dt)
+void Game::update(const PlayerInput& input, float dt)
 {
-    player.m_position += p_move_direction * dt * 100.f;
-    player.m_rotation = glm::mod(player.m_rotation + p_rotate * dt * 90.f + 360.f, 360.f);
+    player.move(input.moveDirection * dt);
 
-    return true;
+    glm::vec2 faceDir = player.lookAt(Input::getMousePos_world());
+
+    if (input.fire)
+    {
+        bullets.emplace_back(player.m_position + faceDir * player.m_size / (float)glm::sqrt(2), faceDir, 1.0f);
+    }
+
+    updateBullets(dt);
+
+    // static RepeatingTimer repTimer(milliseconds(500));
+
+    // if (repTimer.update())
+    // {
+    //     std::cout << std::format("bullets: {}\n", bullets.size());
+    // }
+}
+
+void Game::updateBullets(float dt)
+{
+    for (Bullet& bullet : bullets)
+        bullet.update(dt);
+
+    std::erase_if(bullets, [](const Bullet& bullet){
+        return !bullet.isAlive();
+    }); 
 }

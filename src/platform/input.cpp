@@ -1,6 +1,8 @@
 #include "platform/input.hpp"
+#include "platform/input_update.hpp"
 
 #include <bitset>
+#include <glm/mat4x4.hpp>
 
 static constexpr auto makeGLFWtoKeyMapping()
 {
@@ -294,20 +296,27 @@ namespace Input
     static double prevMouse_x, prevMouse_y;
     static double scroll_x, scroll_y;
 
+    // static float worldX = 0.0f, worldY = 0.0f;
+    static float ndcX = 0.0f, ndcY = 0.0f, ndcZ = 0.0f; // normal device coordinates <-1,1>
+    static glm::mat4 inverseVP;
+
     void init(GLFWwindow* glfwWindow)
     {
         window = glfwWindow;
 
         glfwSetKeyCallback(glfwWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods){
-            // //! i need glfwKey -> Key
+            // if (key < (int)Key::FIRST || key > (int)Key::LAST) return;
+
             int i = static_cast<int>(GLFWtoKey[key]);
-            previousKeyboard[i] = currentKeyboard[i];
+
             currentKeyboard[i] = action != GLFW_RELEASE;
         });
 
         glfwSetMouseButtonCallback(glfwWindow, [](GLFWwindow* window, int button, int action, int mods){
+            // if (button < (int)Mouse::BUTTON_FIRST || button > (int)Mouse::BUTTON_LAST) return;
+
             int i = static_cast<int>(GLFWtoMouse[button]);
-            previousMouse[i] = currentMouse[i];
+
             currentMouse[i] = action != GLFW_RELEASE;
             
             // Mouse mouse = GLFWtoMouse[button];
@@ -323,6 +332,12 @@ namespace Input
 
             mouse_x = xpos;
             mouse_y = ypos;
+
+            int width, height;
+            glfwGetWindowSize(window, &width, &height);
+
+            ndcX = 2.0f * mouse_x / width - 1.0f;
+            ndcY = 1.0f - 2.0f * mouse_y / height;
         });
 
         glfwSetScrollCallback(glfwWindow, [](GLFWwindow* window, double xoffset, double yoffset){
@@ -330,8 +345,17 @@ namespace Input
             scroll_y = yoffset;
         });
 
-        glfwGetCursorPos(glfwWindow, &prevMouse_x, &prevMouse_y);
         glfwGetCursorPos(glfwWindow, &mouse_x, &mouse_y);
+        glfwSetCursorPos(glfwWindow, mouse_x, mouse_y);
+    }
+
+    void setViewAndProjectionMatrices(glm::mat4 const& view, glm::mat4 const& projection)
+    {
+        glm::mat4 vp = projection * view; // projection * view matrix
+        inverseVP = glm::inverse(vp);
+
+        glm::vec4 clip = vp * glm::vec4(0, 0, 0, 1);
+        ndcZ = clip.z / clip.w;
     }
 
     bool isPressed(Key key)
@@ -379,6 +403,35 @@ namespace Input
         return { scroll_x, scroll_y };
     }
 
+    glm::vec2 getMousePos_NDC()
+    {
+        return { ndcX, ndcY };
+    }
+
+    glm::vec2 getMousePos_world()
+    {
+        glm::vec4 world = inverseVP * glm::vec4(ndcX, ndcY, ndcZ, 1.0f);
+        world /= world.w;
+
+        return { world.x, world.y };
+    }
+
+    double getScroll_x()
+    {
+        return scroll_x;
+    }
+
+    double getScroll_y()
+    {
+        return scroll_y;
+    }
+
+    void beginFrame()
+    {
+        previousKeyboard = currentKeyboard;
+        previousMouse = currentMouse;
+    }
+
     // * old stuff *
     /*
     // void update()
@@ -422,27 +475,6 @@ namespace Input
     //     prevMouse_y = mouse_y;
 
     //     glfwGetCursorPos(glfwWindow, &mouse_x, &mouse_y);
-    // }
-
-    // void resetState()
-    // {
-    //     for (int i = static_cast<int>(Key::FIRST); i < static_cast<int>(Key::LAST); i++)
-    //     {
-    //         currentKeyboard[i] = false;
-    //         previousKeyboard[i] = false;
-    //     }
-
-    //     for (int i = static_cast<int>(Mouse::BUTTON_FIRST); i < static_cast<int>(Mouse::BUTTON_LAST); i++)
-    //     {
-    //         currentMouse[i] = false;
-    //         previousMouse[i] = false;
-    //     }
-
-    //     prevMouse_x = mouse_x;
-    //     prevMouse_y = mouse_y;
-
-    //     scroll_x = 0;
-    //     scroll_y = 0;
     // }
     */
 

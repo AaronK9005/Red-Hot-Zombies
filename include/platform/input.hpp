@@ -17,5 +17,10 @@ namespace Input {
     glm::vec2 getMousePos();
     glm::vec2 getMouseDelta();
     glm::vec2 getMouseScroll();
-    // double getScroll();
+    glm::vec2 getMousePos_NDC();
+
+    glm::vec2 getMousePos_world(); // needs view and projection matrices set
+
+    double getScroll_x();
+    double getScroll_y();
 };

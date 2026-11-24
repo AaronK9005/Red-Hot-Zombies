@@ -15,7 +15,11 @@ private:
     glm::ivec2 m_winSize = { s_startWidth, s_startHeight };
 
 private:
-    static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+    struct Callbacks
+    {
+        static void framebufferSize(GLFWwindow* window, int width, int height);
+        static void windowSize(GLFWwindow* window, int width, int height);
+    };
 
     void destroy();
 
@@ -33,4 +37,5 @@ public:
     void swapBuffers();
 
     glm::ivec2 getWinSize() const { return m_winSize; }
+    GLFWwindow* getGLFWwindow() const { return m_window; }
 };

@@ -29,8 +29,14 @@ void Renderer::render(const Game& game)
         p_shader->setMat4("view", p_camera->getViewMatrix());
     }
 
-    p_shader->setVec3("player_color", game.p_color);
+    p_shader->setVec3("color", game.p_color);
     renderRect(game.player.m_position, glm::vec2(game.player.m_size), game.player.m_rotation);
+
+    p_shader->setVec3("color", glm::vec3(0.1f));
+    for (const Bullet& bullet : game.bullets)
+    {
+        renderCircle(bullet.m_position, Bullet::radius);
+    }
 }
 
 bool Renderer::init(const Window& window)
