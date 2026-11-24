@@ -2,8 +2,6 @@
 
 #include "pch.hpp"
 
-#include "platform/debug.hpp"
-
 struct Vertex
 {
     glm::vec2 position{0.0f};
@@ -19,11 +17,9 @@ struct Vertex
         // position
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
         glEnableVertexAttribArray(0);
-        glCheckError();
 
         // texCoords
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
         glEnableVertexAttribArray(1);
-        glCheckError();
     }
 };

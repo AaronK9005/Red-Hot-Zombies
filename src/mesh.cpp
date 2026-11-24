@@ -1,7 +1,5 @@
 #include "mesh.hpp"
 
-#include "platform/debug.hpp"
-
 // Mesh::Mesh(std::span<const Vertex> vertices, std::span<const unsigned> indices)
 // {
 //     glGenBuffers(1, &m_vbo);
@@ -62,7 +60,5 @@ void Mesh::init(const MeshData& meshData)
 void Mesh::draw() const
 {
     glBindVertexArray(m_vao);
-    glCheckError();
     glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, nullptr);
-    glCheckError();
 }

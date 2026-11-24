@@ -19,7 +19,7 @@ Game::~Game()
 
 bool Game::init(const glm::ivec2& size)
 {
-    m_data.player.m_position = glm::vec2(size) * 0.5f;
+    // m_data.player.m_position = glm::vec2(size) * 0.5f;
 
     return true;
 }
@@ -70,12 +70,12 @@ void Game::update(const PlayerInput& input, float dt)
 
     updateBullets(dt);
 
-    // static RepeatingTimer repTimer(milliseconds(500));
+    static RepeatingTimer repTimer(milliseconds(500));
 
-    // if (repTimer.update())
-    // {
-    //     std::cout << std::format("bullets: {}\n", bullets.size());
-    // }
+    if (repTimer.update())
+    {
+        std::cout << std::format("player: ({},{})\n", m_data.player.m_position.x, m_data.player.m_position.y);
+    }
 }
 
 void Game::updateBullets(float dt)

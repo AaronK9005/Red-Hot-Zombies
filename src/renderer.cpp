@@ -14,7 +14,7 @@ void Renderer::render(const Game& game)
 
     renderBackground(game);
     
-    if (useShader()) return;
+    if (!useShader()) return;
     updateProjectionMatrix();
     updateViewMatrixWithFallback();
 
@@ -43,9 +43,11 @@ bool Renderer::init(const Window& window)
         m_meshes[i].init(m_meshDatas[i]);
     }
 
+    glm::vec2 halfDims = glm::vec2(window.getWinSize()) * 0.5f;
+    
     m_projection = glm::ortho(
-        0.0f, static_cast<float>(window.getWinSize().x),
-        0.0f, static_cast<float>(window.getWinSize().y),
+        -halfDims.x, halfDims.x,
+        -halfDims.y, halfDims.y,
         -1.0f, 1.0f
     );
 
