@@ -22,7 +22,9 @@ class Renderer {
     static constexpr std::size_t MESH_COUNT = static_cast<std::size_t>(Shape::COUNT);
     static constexpr std::size_t TEXTURE_COUNT = static_cast<std::size_t>(Tex::COUNT);
 
-    static constexpr glm::vec3 CLEAR_COLOR{0.4f, 0.4f, 0.2f};
+    static constexpr glm::vec3 CLEAR_COLOR{0.0f}; // {0.4f, 0.4f, 0.2f};
+    static constexpr float PAUSE_BRIGHTNESS = 0.5f;
+    static constexpr float PAUSE_OPACITY = 0.5f;
 
     glm::vec2 m_viewportSize = { 800, 600 };
     const Camera2D *m_camera = nullptr;

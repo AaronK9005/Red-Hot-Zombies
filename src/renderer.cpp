@@ -17,12 +17,14 @@ void Renderer::render(const Game& game)
 {
     const auto& gData = game.m_data; // game data
 
-    game.m_paused ? setClearColor(CLEAR_COLOR - glm::vec3(0.1f)) : setClearColor(CLEAR_COLOR);
+    // game.m_paused
     clearFrame();
+
+    float brightness = game.m_paused ? PAUSE_BRIGHTNESS : 1.0f;
     
     m_shader->use();
+    m_shader->setFloat("brightness", brightness);
     m_shader->setMat4("view", m_camera->getViewMatrix());
-    m_shader->setBool("darken", game.m_paused);
 
     renderBackground(game);
     glCheckError();
@@ -65,7 +67,12 @@ bool Renderer::init(const Window& window, const Shader& shader, const Camera2D& 
     setShader(shader);
     setCamera(camera);
 
-    glDisable(GL_BLEND);
+    setClearColor(CLEAR_COLOR);
+
+    // glDisable(GL_BLEND);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
 
     return true;
 }
@@ -121,14 +128,18 @@ void Renderer::renderBackground(const Game& game) const
     getTexture(Tex::Background).bind(TexUnit::u0);
     m_bgShader.setInt("bgTexture", 0);
 
-    glm::vec2 offset = glm::mod(game.m_data.player.m_position, m_viewportSize) / m_viewportSize;
+    glm::vec2 offset = game.m_data.player.m_position / m_viewportSize;
+    /*glm::mod(game.m_data.player.m_position, m_viewportSize)*/ 
 
     m_bgShader.setVec2("offset", offset);
+
+    float opacity = game.m_paused ? PAUSE_OPACITY : 0.75f;
+    m_bgShader.setFloat("opacity", opacity);
 
     glm::mat4 model{1.0f};
 
     model = glm::translate(model, glm::vec3(game.m_data.player.m_position, 0.0f));
-    model = glm::scale(model, glm::vec3(m_viewportSize - glm::vec2(50.f), 1.0f));
+    model = glm::scale(model, glm::vec3(m_viewportSize, 1.0f));
     
     m_bgShader.setMat4("model", model);
     m_bgShader.setMat4("view", m_camera->getViewMatrix());
