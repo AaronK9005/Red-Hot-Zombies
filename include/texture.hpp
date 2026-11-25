@@ -29,6 +29,7 @@ public:
     void unbind() const;
 
     bool loadFromFile(std::string_view filepath);
+    void generateMipmaps() const;
     void destroy();
 
     Texture(const Texture&) = delete;

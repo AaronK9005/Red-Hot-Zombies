@@ -37,7 +37,6 @@ bool Texture::loadFromFile(std::string_view filepath)
 
   //? do i need dynamic internalFormat depending on number of channels?
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-  glGenerateMipmap(GL_TEXTURE_2D);
 
   stbi_image_free(data);
 
@@ -63,6 +62,11 @@ void Texture::bind() const
 void Texture::unbind() const
 {
   glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Texture::generateMipmaps() const
+{
+  glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 void Texture::destroy()

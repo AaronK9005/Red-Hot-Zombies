@@ -12,20 +12,17 @@
 void Renderer::render(const Game& game)
 {
     const auto& gData = game.m_data; // game data
-
-    renderBackground(game);
     
     if (!useShader()) return;
     updateProjectionMatrix();
     updateViewMatrixWithFallback();
 
-    p_shader->setBool("useColor", false);
+    p_shader->setBool("darken", game.m_paused);
 
-    {
-        glm::vec3 playerColor = gData.player.m_color;
-        if (game.m_paused) playerColor -= 0.2;
-        p_shader->setVec3("color", playerColor);
-    }
+    renderBackground(game);
+
+    p_shader->setBool("useColor", true);
+    p_shader->setVec3("color", gData.player.m_color);
 
     renderRect(gData.player.m_position, glm::vec2(gData.player.m_size), gData.player.m_rotation);
 
@@ -144,24 +141,37 @@ void Renderer::initCircleMeshData()
 
 void Renderer::renderBackground(const Game& game) const
 {
-    GLfloat clearColor[4];
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
-    if (game.m_paused)
-    {
-        constexpr float darkFactor = 0.1f;
+    // glDisable(GL_DEPTH_TEST);
+    // glDepthMask(GL_FALSE);
 
-        glClearColor(
-            std::max(0.0f, clearColor[0] - darkFactor),
-            std::max(0.0f, clearColor[1] - darkFactor),
-            std::max(0.0f, clearColor[2] - darkFactor),
-            clearColor[3]
-        );
-    }
+    getTexture(Tex::Background).bind();
+    p_shader->setInt("texture1", 0);
 
-    glClear(GL_COLOR_BUFFER_BIT);
+    glm::mat4 model{1.0f};
 
-    if (game.m_paused)
-        glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+    model = glm::scale(model, glm::vec3(2.0f, 2.0f, 1.0f));
+
+    // glDepthMask(GL_TRUE);
+    // glEnable(GL_DEPTH_TEST);
+
+    // GLfloat clearColor[4];
+    // glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
+    // if (game.m_paused)
+    // {
+    //     constexpr float darkFactor = 0.1f;
+
+    //     glClearColor(
+    //         std::max(0.0f, clearColor[0] - darkFactor),
+    //         std::max(0.0f, clearColor[1] - darkFactor),
+    //         std::max(0.0f, clearColor[2] - darkFactor),
+    //         clearColor[3]
+    //     );
+    // }
+
+    // glClear(GL_COLOR_BUFFER_BIT);
+
+    // if (game.m_paused)
+    //     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 }
 
 bool Renderer::useShader() const
@@ -199,6 +209,7 @@ void Renderer::updateViewMatrixWithFallback() const
 bool Renderer::initTextures()
 {
     if (!loadTexture(Tex::Background, RESOURCES_PATH "assets/color_splash_bg.jpg")) return false;
+    getTexture(Tex::Background).setWrappings(GL_REPEAT, GL_REPEAT);
 
     return true;
 }
