@@ -24,12 +24,10 @@ bool Application::init()
         return false;
     }
 
-    if (!renderer.init(window))
+    if (!renderer.init(window, m_shader, m_camera))
     {
         return false;
     }
-    renderer.setShader(m_shader);
-    renderer.setCamera(m_camera);
 
     Input::init(window.getGLFWwindow());
     Input::setViewAndProjectionMatrices(m_camera.getViewMatrix(), renderer.getProjectionMatrix());
@@ -60,6 +58,13 @@ void Application::run()
         {
             running = false;
             break;
+        }
+
+        if (window.hasSizeChanged())
+        {
+            glm::ivec2 winSize = window.getWinSize();
+
+            renderer.setViewportSize(winSize);
         }
 
         float dt = getDeltaTime();

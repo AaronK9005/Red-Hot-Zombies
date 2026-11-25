@@ -3,38 +3,43 @@
 #include "game.hpp"
 #include "camera.hpp"
 #include "shader.hpp"
+#include "platform/debug.hpp"
 
 #include <cmath>
 #include <iostream>
 #include <algorithm>
 #include <magic_enum.hpp>
 
+// debug
+#include "timer.hpp"
+
 void Renderer::render(const Game& game)
 {
     const auto& gData = game.m_data; // game data
-    
-    if (!useShader()) return;
-    updateProjectionMatrix();
-    updateViewMatrixWithFallback();
 
-    p_shader->setBool("darken", game.m_paused);
+    game.m_paused ? setClearColor(CLEAR_COLOR - glm::vec3(0.1f)) : setClearColor(CLEAR_COLOR);
+    clearFrame();
+    
+    m_shader->use();
+    m_shader->setMat4("view", m_camera->getViewMatrix());
+    m_shader->setBool("darken", game.m_paused);
 
     renderBackground(game);
+    glCheckError();
 
-    p_shader->setBool("useColor", true);
-    p_shader->setVec3("color", gData.player.m_color);
-
+    m_shader->setBool("useColor", true);
+    m_shader->setVec3("color", gData.player.m_color);
     renderRect(gData.player.m_position, glm::vec2(gData.player.m_size), gData.player.m_rotation);
 
-    p_shader->setBool("useColor", true);
-    p_shader->setVec3("color", glm::vec3(0.1f));
+    m_shader->setBool("useColor", true);
+    m_shader->setVec3("color", glm::vec3(0.1f));
     for (const Bullet& bullet : gData.bullets)
     {
         renderCircle(bullet.m_position, Bullet::radius);
     }
 }
 
-bool Renderer::init(const Window& window)
+bool Renderer::init(const Window& window, const Shader& shader, const Camera2D& camera)
 {
     initRectMeshData();
     initCircleMeshData();
@@ -44,17 +49,32 @@ bool Renderer::init(const Window& window)
         m_meshes[i].init(m_meshDatas[i]);
     }
 
-    glm::vec2 halfDims = glm::vec2(window.getWinSize()) * 0.5f;
-    
-    m_projection = glm::ortho(
-        -halfDims.x, halfDims.x,
-        -halfDims.y, halfDims.y,
-        -1.0f, 1.0f
-    );
+    if (!initTextures())
+    {
+        std::cout << "Failed to init textures\n";
+        return false;
+    }
 
-    initTextures();
+    if (!m_bgShader.compile(SHADERS_PATH "basic.vert", SHADERS_PATH "background.frag"))
+    {
+        std::cout << "Renderer::init(): Failed to compile background shader\n";
+        return false;
+    }
+    
+    setViewportSize(window.getWinSize());
+    setShader(shader);
+    setCamera(camera);
+
+    glDisable(GL_BLEND);
 
     return true;
+}
+
+#pragma region |> render helpers <|
+
+void Renderer::clearFrame() const
+{
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void Renderer::renderRect(const glm::vec2& position, const glm::vec2& size) const
@@ -63,7 +83,7 @@ void Renderer::renderRect(const glm::vec2& position, const glm::vec2& size) cons
     model = glm::translate(model, glm::vec3(position, 0.0f));
     model = glm::scale(model, glm::vec3(size, 0.0f));
 
-    p_shader->setMat4("model", model);
+    m_shader->setMat4("model", model);
 
     m_meshes[(int)Shape::Rect].draw();
 }
@@ -73,9 +93,9 @@ void Renderer::renderRect(const glm::vec2& position, const glm::vec2& size, floa
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(position, 0.0f));
     model = glm::rotate(model, glm::radians(rotation), Axis::Z);
-    model = glm::scale(model, glm::vec3(size, 0.0f));
+    model = glm::scale(model, glm::vec3(size, 1.0f));
 
-    p_shader->setMat4("model", model);
+    m_shader->setMat4("model", model);
 
     m_meshes[(int)Shape::Rect].draw();
 }
@@ -86,10 +106,45 @@ void Renderer::renderCircle(const glm::vec2& center, float radius) const
     model = glm::translate(model, glm::vec3(center, 0.0f));
     model = glm::scale(model, glm::vec3(radius, radius, 0.0f));
 
-    p_shader->setMat4("model", model);
+    m_shader->setMat4("model", model);
 
     m_meshes[(int)Shape::Circle].draw();
 }
+
+void Renderer::renderBackground(const Game& game) const
+{
+    // glDisable(GL_DEPTH_TEST);
+    // glDepthMask(GL_FALSE);
+
+    m_bgShader.use();
+
+    getTexture(Tex::Background).bind(TexUnit::u0);
+    m_bgShader.setInt("bgTexture", 0);
+
+    glm::vec2 offset = glm::mod(game.m_data.player.m_position, m_viewportSize) / m_viewportSize;
+
+    m_bgShader.setVec2("offset", offset);
+
+    glm::mat4 model{1.0f};
+
+    model = glm::translate(model, glm::vec3(game.m_data.player.m_position, 0.0f));
+    model = glm::scale(model, glm::vec3(m_viewportSize - glm::vec2(50.f), 1.0f));
+    
+    m_bgShader.setMat4("model", model);
+    m_bgShader.setMat4("view", m_camera->getViewMatrix());
+    m_bgShader.setMat4("projection", m_projection);
+
+    m_meshes[(int)Shape::Rect].draw();
+
+    m_shader->use();
+
+    // glDepthMask(GL_TRUE);
+    // glEnable(GL_DEPTH_TEST);
+}
+
+#pragma endregion ---------------------------------
+
+#pragma region |> init helpers <|
 
 void Renderer::initRectMeshData()
 {
@@ -139,98 +194,94 @@ void Renderer::initCircleMeshData()
     };
 }
 
-void Renderer::renderBackground(const Game& game) const
-{
-    // glDisable(GL_DEPTH_TEST);
-    // glDepthMask(GL_FALSE);
-
-    getTexture(Tex::Background).bind();
-    p_shader->setInt("texture1", 0);
-
-    glm::mat4 model{1.0f};
-
-    model = glm::scale(model, glm::vec3(2.0f, 2.0f, 1.0f));
-
-    // glDepthMask(GL_TRUE);
-    // glEnable(GL_DEPTH_TEST);
-
-    // GLfloat clearColor[4];
-    // glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
-    // if (game.m_paused)
-    // {
-    //     constexpr float darkFactor = 0.1f;
-
-    //     glClearColor(
-    //         std::max(0.0f, clearColor[0] - darkFactor),
-    //         std::max(0.0f, clearColor[1] - darkFactor),
-    //         std::max(0.0f, clearColor[2] - darkFactor),
-    //         clearColor[3]
-    //     );
-    // }
-
-    // glClear(GL_COLOR_BUFFER_BIT);
-
-    // if (game.m_paused)
-    //     glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-}
-
-bool Renderer::useShader() const
-{
-    if (!p_shader)
-    {
-        std::cout << "Renderer::render::ERROR: no shader given\n";
-        return false;
-    }
-
-    p_shader->use();
-
-    return true;
-}
-
-void Renderer::updateProjectionMatrix() const
-{
-    p_shader->setMat4("projection", m_projection);
-}
-
-void Renderer::updateViewMatrixWithFallback() const
-{
-    if (!p_camera)
-    {
-        std::cout << "Renderer::render::WARNING: no camera given. Using fallback (default)\n";
-        Camera2D fallback_cam;
-
-        p_shader->setMat4("view", fallback_cam.getViewMatrix());
-    }
-    else {
-        p_shader->setMat4("view", p_camera->getViewMatrix());
-    }
-}
-
 bool Renderer::initTextures()
 {
+    Texture::flipVerticallyOnLoad(true);
+
     if (!loadTexture(Tex::Background, RESOURCES_PATH "assets/color_splash_bg.jpg")) return false;
-    getTexture(Tex::Background).setWrappings(GL_REPEAT, GL_REPEAT);
+    getTexture(Tex::Background).setWrappings(GL_MIRRORED_REPEAT, GL_MIRRORED_REPEAT);
 
     return true;
 }
 
-bool Renderer::loadTexture(Tex texture, std::string_view filepath)
-{
-    if (
-        !m_textures[static_cast<int>(texture)]
-        .loadFromFile(filepath)
-    ){
-        std::cout << std::format(
-            "Failed to load '{}' texture. Path: {}\n",
-            magic_enum::enum_name(texture), filepath
-        );
-        return false;
+#pragma endregion ---------------------------------
+
+#pragma region |> resources managers <|
+
+    #pragma region |> set <|
+
+    void Renderer::setClearColor(glm::vec3 const& color) const
+    {
+        glClearColor(color.x, color.y, color.z, 1.0f);
+    }
+    
+    void Renderer::setCamera(const Camera2D& camera)
+    {
+        m_camera = &camera;
+    }
+    
+    void Renderer::setShader(const Shader& shader)
+    {
+        m_shader = &shader;
+        
+        shader.use();
+        shader.setMat4("projection", m_projection);
     }
 
-    return true;
-}
+    void Renderer::setViewportSize(glm::vec2 const& viewport)
+    {
+        if (m_viewportSize != viewport)
+        {
+            m_viewportSize = viewport;
+        }
 
-const Texture& Renderer::getTexture(Tex texture) const
-{
-    return m_textures[static_cast<int>(texture)];
-}
+        updateProjectionMatrix();
+    }
+
+    #pragma endregion ---------------------------------
+
+    #pragma region |> get <|
+
+    const Texture& Renderer::getTexture(Tex texture) const
+    {
+        return m_textures[static_cast<int>(texture)];
+    }
+    
+    #pragma endregion ---------------------------------
+
+    #pragma region |> other managers <|
+    void Renderer::updateProjectionMatrix()
+    {
+        m_projection = glm::mat4(1.0f);
+
+        glm::vec2 halfDims = glm::vec2(m_viewportSize * 0.5f);
+        
+        m_projection = glm::ortho(
+            -halfDims.x, halfDims.x,
+            -halfDims.y, halfDims.y,
+            -1.0f, 1.0f
+        );
+
+        if (m_shader) m_shader->setMat4("projection", m_projection);
+    }
+
+
+    bool Renderer::loadTexture(Tex texture, std::string_view filepath)
+    {
+        if (
+            !m_textures[static_cast<int>(texture)]
+            .loadFromFile(filepath)
+        ){
+            std::cout << std::format(
+                "Failed to load '{}' texture. Path: {}\n",
+                magic_enum::enum_name(texture), filepath
+            );
+            return false;
+        }
+
+        return true;
+    }
+
+    #pragma endregion ---------------------------------
+
+#pragma endregion ---------------------------------

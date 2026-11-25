@@ -11,7 +11,7 @@ struct Shader
 {
     Shader();
 
-    void use();
+    void use() const;
     bool compile(const char* vertPath, const char* fragPath);
 
     // for setting uniform variables in the shader

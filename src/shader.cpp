@@ -99,7 +99,7 @@ bool Shader::compile(const char* vertPath, const char* fragPath)
     return true;
 }
 
-void Shader::use()
+void Shader::use() const
 {
     glUseProgram(id);
 }

@@ -13,6 +13,7 @@ private:
 
     GLFWwindow* m_window = nullptr;
     glm::ivec2 m_winSize = { s_startWidth, s_startHeight };
+    bool m_sizeChanged = false;
 
 private:
     struct Callbacks
@@ -33,6 +34,7 @@ public:
     bool init();
     bool shouldClose() const;
     void processInput(); // temporary handles specific keys, before I implement scenes
+    bool hasSizeChanged();
     void pollEvents();
     void swapBuffers();
 

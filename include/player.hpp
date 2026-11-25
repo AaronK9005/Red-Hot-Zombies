@@ -11,7 +11,7 @@ struct Player
     float m_size = 50.0f;
     float m_speed = 100.0f;
 
-    glm::vec3 m_color{0.7f, 0.3f, 0.3f};
+    glm::vec3 m_color{0.2f, 0.2f, 0.6f};
 
     void move(glm::vec2 const& direction);
 

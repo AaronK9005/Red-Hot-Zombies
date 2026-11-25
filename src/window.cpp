@@ -21,6 +21,8 @@ void Window::Callbacks::windowSize(GLFWwindow* window, int width, int height)
     auto* self = static_cast<Window*>(glfwGetWindowUserPointer(window));
 
     self->m_winSize = {width, height};
+
+    self->m_sizeChanged = true;
 }
 #pragma endregion
 
@@ -85,8 +87,6 @@ bool Window::init()
         return false;
     }
 
-    glClearColor(0.4f, 0.4f, 0.2f, 1.0f);
-
     return true;
 }
 
@@ -115,6 +115,17 @@ void Window::processInput()
     {
         glfwSetWindowShouldClose(m_window, true);
     }
+}
+
+bool Window::hasSizeChanged()
+{
+    if (m_sizeChanged)
+    {
+        m_sizeChanged = false;
+        return true;
+    }
+
+    return false;
 }
 
 void Window::pollEvents()
