@@ -95,11 +95,11 @@ void Renderer::renderRect(const glm::vec2& position, const glm::vec2& size) cons
     m_meshes[(int)Shape::Rect].draw();
 }
 
-void Renderer::renderRect(const glm::vec2& position, const glm::vec2& size, float rotation) const
+void Renderer::renderRect(const glm::vec2& position, const glm::vec2& size, float rotation_rad) const
 {
     glm::mat4 model(1.0f);
     model = glm::translate(model, glm::vec3(position, 0.0f));
-    model = glm::rotate(model, glm::radians(rotation), Axis::Z);
+    model = glm::rotate(model, rotation_rad, Axis::Z);
     model = glm::scale(model, glm::vec3(size, 1.0f));
 
     m_shader->setMat4("model", model);

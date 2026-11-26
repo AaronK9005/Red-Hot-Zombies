@@ -55,7 +55,7 @@ private:
     void clearFrame() const;
 
     void renderRect(const glm::vec2& position, const glm::vec2& size) const;
-    void renderRect(const glm::vec2& position, const glm::vec2& size, float rotation) const;
+    void renderRect(const glm::vec2& position, const glm::vec2& size, float rotation_rad) const;
     void renderCircle(const glm::vec2& center, float radius) const;
 
     void renderBackground(const Game& game) const;

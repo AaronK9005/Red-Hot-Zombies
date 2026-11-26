@@ -45,26 +45,24 @@ PlayerInput Game::handleInput()
 void Game::update(const PlayerInput& input, float dt)
 {
     if (input.togglePause) m_paused = !m_paused;
-    if (m_paused)
-    {
-        return;
-    }
+    if (m_paused) return;
 
     {
         glm::vec2 moveVec = input.moveDirection * dt;
-        if (input.sprint) moveVec *= 2;
+        if (input.sprint) moveVec *= Player::SPRINT_MOD;
 
         m_data.player.move(moveVec);
     }
 
-    glm::vec2 faceDir = m_data.player.lookAt(Input::getMousePos_world());
+    m_data.player.lookAt(Input::getMousePos_world());
+    glm::vec2 faceDir = m_data.player.faceDir();
 
     if (input.fire)
     {
         m_data.bullets.emplace_back(
             m_data.player.m_position + faceDir * m_data.player.m_size / (float)glm::sqrt(2),
             faceDir,
-            1.0f // lifetime in seconds
+            2.0f // lifetime in seconds
         );
     }
 
