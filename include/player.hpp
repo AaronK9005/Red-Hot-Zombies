@@ -10,7 +10,7 @@ struct Player : public PositionComponent, public HealthComponent
     float m_size = 50.0f;
     float m_speed = 100.0f;
 
-    glm::vec3 m_color{0.2f, 0.2f, 0.6f};
+    glm::vec3 m_color{0.1f, 1.0f, 0.6f};
 
     void move(glm::vec2 const& direction);
 
